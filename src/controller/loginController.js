@@ -3,32 +3,49 @@
 
 
 const jwt = require("jsonwebtoken");
+
 const authorModel = require("../model/authorModel");
 
+const isValidRequestBody =(value)=>{
+  return Object.keys(value).length>0
+}
+
+const isValid =(value)=>{
+  if(typeof value ==="undefined"||value ===null) return false
+  if(typeof value ==="string"&& value.trim().length ===0) return false
+  return true
+}
 
 
 
 const loginUser = async function (req, res) {
     try{
-       if(!Object.keys(req.body).length===0) return res.status(400).send({status:false,msg:"Please enter  mail and password"})
-      let userName = req.body.email
-      let password = req.body.password;
+       const data = req.body;
+       if(!isValidRequestBody(data)) return res.status(400).send({status:false,msg:"Please enter  mail and password"})
+     
+        const{email,password}= data
+        // validation for login
 
-      if(!userName||userName=== undefined) {
+      if(!isValid(email)) {
         return res.status(400).send({status:false,msg:"please enter email"})
       }
-      if(!password||password===undefined) {
+
+      if(!/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(email)){
+        return res.status(400).send({status:false,msg:"please enter valid email address"})
+      }
+
+      if(!isValid(password)) {
         return res.status(400).send({status:false,msg:"please enter password"})
       }
-      userName = userName.trim().toLowerCase()
-      password=password.trim()
-      let user = await authorModel.findOne({ email: userName, password: password });
+
+   
+      let user = await authorModel.findOne({ email, password});
       if (!user)
         return res.status(404).send({status: false, msg: "Please enter a valid email address and password"});
    
       let token = jwt.sign(
         {
-          authorId: user._id.toString(),
+          authorId: user._id,
           group :"12",
           project:1,
         },

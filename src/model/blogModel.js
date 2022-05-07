@@ -4,15 +4,17 @@ const ObjectId = mongoose.Schema.Types.ObjectId
 
 const blogSchema = new mongoose.Schema({
     title: {
-        required: true,
-        type: String
+        required: "title is required",
+        type: String,
+        trim:true
     },
     body: {
-        required: true,
-        type: String
+        required: "body is required",
+        type: String,
+        trim:true
     },
     authorId: {
-        required: true,
+        required: "Blog author is required",
         type: ObjectId,
         ref: 'Author'
     },
@@ -21,7 +23,7 @@ const blogSchema = new mongoose.Schema({
     },
     category: {
         type: String,
-        require: true
+        require: "category is required"
        
     },
     subcategory: {
