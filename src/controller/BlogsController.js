@@ -76,6 +76,7 @@ const updateblogs = async function(req,res){
        let tokenAuthorId =req["authorId"] 
        
        let {title,body,tags,subcategory,isPublished}=data  // destructuring
+       let data1=Object.keys(data)
 
         
 
@@ -90,23 +91,19 @@ const updateblogs = async function(req,res){
        let status= await blogModel.findOne({_id:blogId,isDeleted:false,deletedAt:null})
        if(!status) return res.status(404).send({status :false,message :"this blog is not present"})
        
-       // authorization
-
-       if(!isValidObjectId(tokenAuthorId)) {
-           return res.status(400).send({ status:false, messageg: `${tokenAuthorId} is not a valid blogId` })
-       }
-
+      
        if(status.authorId!= tokenAuthorId){
            return res.status(403).send({status:false,message:"You are not authorized to access this data"})
        }
-       
-       if(!(title||body||tags||subcategory||isPublished)) {
-           return res.status(404).send({status:false,message:"Plz enter valid keys for updation "})
+       if(!isValidRequestBody(data)){
+        return res.status(400).send({status:false,message:"No Data for updation !Aborting update operation"})
        }
        
        const updateblogs = await blogModel.findByIdAndUpdate( blogId,
        { $addToSet: {tags:tags,subcategory:subcategory},
-         $set : { title: title, body: body,isPublished:true,publishedAt: Date.now()}
+         $set : { title: title, body: body,
+            isPublished: isPublished ? isPublished : false,
+          publishedAt: isPublished ? Date.now() : null}
        },
        { new: true});
        
@@ -149,7 +146,7 @@ const deletById=async (req,res)=>{
 
         
         
-        let delteblog = await blogModel.findByIdAndUpdate(blogId,
+      await blogModel.findByIdAndUpdate(blogId,
             {$set:{isDeleted:true,deletedAt: Date.now()}},
             {new:true})
         return res.status(200).send({status:true,message:"this blog is deleted successfully"})    
@@ -215,18 +212,16 @@ const deletByProperty =  async (req,res)=>
         if(idsOfBlogsToDelete.length===0) 
         return res.status(404).send({status:false , message:"No Blogs under your authorization"})
 
-       
-        
 
-        let property = await blogModel.updateMany({_id :{$in:idsOfBlogsToDelete}},
+         await blogModel.updateMany({_id :{$in:idsOfBlogsToDelete}},
             {$set:{isDeleted:true,deletedAt: Date.now()}},
             {new:true});
 
-        res.status(200).send({status:true,message:"Blog(s) deleted successfully"})
+            return res.status(200).send({status:true,message:`${idsOfBlogsToDelete.length } Blog(s) deleted successfully`})
     }
     catch (err) {
         console.log(err.message)
-        res.status(500).send({ status: "error", error: err.message })
+        return res.status(500).send({ status: "error", error: err.message })
     }
 }
  

@@ -7,6 +7,7 @@ const blogSchema = new mongoose.Schema({
         required: "title is required",
         type: String,
         trim:true
+        
     },
     body: {
         required: "body is required",
@@ -19,7 +20,8 @@ const blogSchema = new mongoose.Schema({
         ref: 'Author'
     },
     tags: {
-        type: [String],
+        type: [{type:String,trim:true,lowercase:true}]
+        
     },
     category: {
         type: String,
@@ -27,7 +29,8 @@ const blogSchema = new mongoose.Schema({
        
     },
     subcategory: {
-        type: [String]
+        type: [{type:String,trim:true,lowercase:true}]
+        
     },
 
     deletedAt: {
@@ -53,4 +56,4 @@ const blogSchema = new mongoose.Schema({
 
 }, { timestamps: true });
 
-module.exports = mongoose.model('BlogsCollection', blogSchema)
+module.exports = mongoose.model('Blog', blogSchema)

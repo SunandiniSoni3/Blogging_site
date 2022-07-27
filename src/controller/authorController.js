@@ -1,4 +1,4 @@
-
+const jwt = require("jsonwebtoken");
 const authorModel = require("../model/authorModel")
 const mongoose = require('mongoose');
 const blogModel = require("../model/blogModel")
@@ -52,21 +52,22 @@ const createAuthor = async (req, res) => {
         
         let regx = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/
        
-        let x = regx.test(email)
-        if(!x) {
+        let mailCheck = regx.test(email)
+        if(!mailCheck) {
             return res.status(400).send({status:false,message:"write the correct format for email"})
         }
          let mail = await authorModel.findOne({email})
 
-         if(mail) return res.status(400).send({status: false,message:"this email is already registered"})
+         if(mail) return res.status(404).send({status: false,message:`this ${email} email is already registered`})
         
 
         // password validation
         if(!isValid(password))  return res.status(400).send({ status:false, message: "plz write the password" });
         
         
-        const authorData ={fname,lname,title, email,password}
-        let author = await authorModel.create(authorData)
+        
+        let author = await authorModel.create(data)
+        console.log(author)
 
         res.status(201).send({ status: true, data: author })
     }
@@ -77,11 +78,53 @@ const createAuthor = async (req, res) => {
 
 
 
-// ******************************************************************************************************************************************************
+// *****************************************************[LOGIN API]*********************************************************************************
 
 
+const loginUser = async function (req, res) {
+    try{
+       const data = req.body;
+       if(!isValidRequestBody(data)) return res.status(400).send({status:false,msg:"Please enter  mail and password"})
+     
+        const{email,password}= data
+        // validation for login
+
+      if(!isValid(email)) {
+        return res.status(400).send({status:false,msg:"please enter email"})
+      }
+
+      if(!/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(email)){
+        return res.status(400).send({status:false,msg:"please enter valid email address"})
+      }
+
+      if(!isValid(password)) {
+        return res.status(400).send({status:false,msg:"please enter password"})
+      }
+
+   
+      let user = await authorModel.findOne({ email, password});
+      if (!user)
+        return res.status(404).send({status: false, msg: "Please enter a valid email address and password"});
+   
+      let token = jwt.sign(
+        {
+          authorId: user._id,
+        },
+        "jhouogdg###"
+      );
+      
+      
+      res.setHeader("x-api-key", token);
+      return res.status(200).send({ status: true, data: token });
+    }
+    catch(err){
+      console.log(err.message)
+       return res.status(500).send({status:"error",msg:err.message})
+    }
+  }
 
 
+// *****************************************************[Blog Api]*********************************************************************************
 
 
 const createBlogs = async function(req, res) {
@@ -104,19 +147,9 @@ const createBlogs = async function(req, res) {
  
          const id = await authorModel.findById(authorId)
          if (!id) {
-             return res.status(404).send({ status: false, message: "this Author is not present." })
-         }
-        //  accessing the payload authorId from request
-
-         let token = req["authorId"]  
-
-        //  authorization
-         if(token!=authorId)
-         {
-            return res.status(403).send({status:false,message:"You are not authorized to access this data"})
+             return res.status(404).send({ status: false, message: `${authorId} is not registered user` })
          }
        
- 
         // title validation
         if (!isValid(title)) {
             return res.status(400).send({ status:false, message: "title is not given" })
@@ -170,7 +203,7 @@ const createBlogs = async function(req, res) {
 
 
 
-module.exports={createAuthor,createBlogs}
+module.exports={createAuthor,createBlogs,loginUser}
 
 
 

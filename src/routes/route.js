@@ -2,34 +2,29 @@ const express = require('express');
 const router = express.Router();
 
 
-const loginController = require("../controller/loginController")
-const middleWare =require("../middleWare/auth")
+
+const {validateToken} =require("../middleWare/auth")
 
 
-const author =require("../controller/authorController")
+const {createAuthor,loginUser,createBlogs} =require("../controller/authorController")
 
-const blog=require("../controller/BlogsController")
-
-
-
-router.post("/authors", author.createAuthor)
-
-router.post("/login",loginController.loginUser)
-
-router.post("/blogs",middleWare.validateToken,author.createBlogs)
-
-router.get("/blogs",middleWare.validateToken,blog.getList)
-
-router.put("/blogs/:blogId", middleWare.validateToken,blog.updateblogs)
-
-router.delete("/blogs/:blogId",middleWare.validateToken,blog.deletById)
-
-router.delete("/blogs",middleWare.validateToken,blog.deletByProperty)
+const {getList,updateblogs,deletByProperty,deletById}=require("../controller/BlogsController")
 
 
 
+router.post("/authors", createAuthor)
 
+router.post("/login",loginUser)
 
+router.post("/blogs",validateToken,createBlogs)
+
+router.get("/blogs",validateToken,getList)
+
+router.put("/blogs/:blogId", validateToken,updateblogs)
+
+router.delete("/blogs/:blogId",validateToken,deletById)
+
+router.delete("/blogs",validateToken,deletByProperty)
 
 
 

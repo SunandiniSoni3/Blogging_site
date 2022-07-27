@@ -2,7 +2,7 @@
 const jwt = require("jsonwebtoken");
 
 const authToken = (token)=>{
-    let tokenValidate = jwt.verify(token,"project-1-group-12",(err,data)=>{
+    let tokenValidate = jwt.verify(token,"jhouogdg###",(err,data)=>{
         if(err) 
         return null
         else{
@@ -31,9 +31,9 @@ const validateToken = async function (req, res, next) {
             next()
           
     } 
-    catch (erre) {
-        return res.status(500).send({  status:"Error", error: erre.message })
+    catch (err) {
+        return res.status(500).send({  status:"Error", error: err.message })
 
     }
 }
-module.exports.validateToken = validateToken
+module.exports = {validateToken}
